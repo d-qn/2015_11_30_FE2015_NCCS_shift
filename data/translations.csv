@@ -1,0 +1,16 @@
+code,fr,It,de,sp,en
+title,Positionnement politique de l'assemblée fédérale 2011 vs 2015,Posizionamento politico dei consiglieri nazionali: 2011 - 2015 ,Politische Positionierung der Nationalräte 2011 und 2015,Posición política de los diputados: 2011 y 2015,Political positions of parliamentarians: 2011 vs 2015
+nc,Conseil national,,,,
+cs,Conseil des Etats,,,,
+footer,swissinfo.ch | source: www.smartvote.ch,swissinfo.ch / fonte: www.smartvote.ch,swissinfo.ch | Quelle: www.smartvote.ch,swissinfo.ch | Fuente: www.smartvote.ch,swissinfo.ch | source: www.smartvote.ch
+lab.leftright,gauche    /    droite,sinistra   /   destra,links    /    rechts,izquierda / derecha,left   /   right
+lab.conslib,conservateur    /    libéral,conservatore / liberale,konservativ    /    liberal,conservador / liberal,conservative   /   liberal
+party.FDP,Parti libéral-radical (PLR),Partito liberale radicale (PLR),Freisinnig-Demokratische Partei (FDP.Die Liberalen),Partido Liberal Radical (PLR),Radical Party (FDP)
+party.CVP,Parti démocrate-chrétien (PDC),Partito popolare democratico (PPD),Christlichdemokratische Volkspartei (CVP),Partido Demócrata Cristiano (PDC),Christian Democratic Party (CVP)
+party.SP,Parti socialiste (PS),Partito socialista (PS),Sozialdemokratische Partei (SP),Partido Socialista (PS),Social Democratic Party (SP)
+party.SVP,Union démocratique du centre (UDC),Unione democratica di centro (UDC),Schweizerische Volkspartei (SVP),Unión Democrática de Centro (UDC),Swiss People's Party (SVP)
+party.glp,Vert'libéraux,Verdi liberali,Grünliberale Partei (GLP),Verdes Liberales ,Liberal Green Party (GLP)
+party.BDP,Parti bourgeois démocratique (PBD),Partito borghese democratico (PBD),Bürgerlich-Demokratische Partei (BDP),Partido Burgués Democrático (PBD),Conservative Democratic Party (BDP)
+party.Grüne,Les Verts,Verdi ,Grüne Partei,Los Verdes,Greens 
+title2,Positionnement gauche / droite du Conseil national: 2011 vs 2015,Posizionamento sinistra / destra del Consiglio nazionale: 2011 - 2015,Positionierung links / rechts des Nationalrats: 2011 und 2015,Posición izquierda / derecha del Consejo Nacional ,Left/right balance in House of Representatives: 2011 vs 2015
+lab.freq,fréquence *,frequenza *,Häufigkeit *,frecuencia *,frequency*

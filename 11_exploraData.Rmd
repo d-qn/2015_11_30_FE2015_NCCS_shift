@@ -1,0 +1,236 @@
+---
+title: "Explore elected NC & CS 2011 vs 2015"
+author: "Duc-Quang Nguyen"
+date: "30 Nov 2015"
+output: html_document
+---
+
+### Load packages
+```{r, echo = F,  message=FALSE}
+if(!require(readxl)) {
+  devtools::install_github("hadley/readxl")
+  require(readxl)
+}
+if(!require(dplyr)) {
+  install.packages("dplyr", repos="http://cran.us.r-project.org")
+  require(dplyr)
+}
+if(!require(tidyr)) {
+  install.packages("tidyr", repos="http://cran.us.r-project.org")
+  require(tidyr)
+}
+if(!require(ggplot2)) {
+  install.packages("ggplot2", repos="http://cran.us.r-project.org")
+  require(ggplot2)
+}
+if(!require(scales)) {
+  install.packages("scales", repos="http://cran.us.r-project.org")
+  require(scales)
+}
+if(!require(magrittr)) {
+  install.packages("magrittr", repos="http://cran.us.r-project.org")
+  require(magrittr)
+}
+if(!require(animation)) {
+  install.packages("animation", repos="http://cran.us.r-project.org")
+  require(animation)
+}
+if(!require(swiTheme)) {
+  install_github("d-qn/swiTheme")
+  require(swiTheme)
+}
+if(!require(gridExtra)) {
+  install.packages("gridExtra", repos="http://cran.us.r-project.org")
+  require(gridExtra)
+}
+```
+
+### Settings
+```{r,echo = F}
+# party to consider
+party.sub <- structure(
+  c('#FCDB06', '#FF7D00', '#255FF6', '#00E7A7', '#17A25A', '#FF0000', '#006A49'), 
+  names = c('BDP', 'CVP', 'FDP', 'glp', 'Grüne', 'SP', 'SVP')
+)
+mp.file <- "data/smartmap.nrsr11_15.kandidaten_ergaenztMedian.xls"
+translation.file <- "data/translations.csv"
+
+font <- "Open Sans"
+fontH <- "Open Sans Semibold"
+fontL <- "Open Sans Light"
+
+```
+
+### Load mp data files
+```{r,echo = F}
+txt <- read.csv(translation.file, row.names = 1)
+
+mp.all <- read_excel(mp.file)
+# remove the median computed by smartvote
+mp <- mp.all %>% filter(!Partei %in% c("NR-Median", "SR-Median"))
+mp.svMedian <- mp.all %>% filter(Partei %in% c("NR-Median", "SR-Median"))
+
+# rename columns
+mp %<>% rename(party = Partei, election = Wahljahr, 
+  x_coord = `coord_x (left-right)`, y_coord = `coord_y (cons-lib)`)
+
+# add column 'chamber' NC or CS
+mp$house <- as.factor(gsub(" (\\d+)", "", mp$Wahl))
+  
+table(mp$party)
+table(mp$house, mp$election)
+
+```
+
+
+## smartmap by party
+```{r, echo = F}
+
+## Helpers
+# ggplot2 theme
+swiTheme <- function(ticks=TRUE, base_family="Open Sans", base_size = 18) {
+  choose_font(base_family, FALSE)
+  ret <- theme_minimal(base_family=base_family, base_size = base_size) +
+    theme(
+      plot.title   = element_text(hjust = 0.1, vjust = 0, size = rel(2.3), 
+        family = "Open Sans Semibold"),
+      axis.title.x = element_text(hjust = 0.5, vjust = -2, size = rel(1.6)),
+      axis.title.y = element_text(vjust = 2, hjust = 0.5, size = rel(1.6)),
+      axis.line     =  element_line(linetype = "solid", size = 1),
+      axis.text    = element_blank(), 
+      axis.ticks = element_blank(), 
+      panel.margin.y =  unit(c(3), "lines"),
+      plot.margin = unit(c(1, 1, 2, 1), "lines"),
+      panel.border = element_rect(colour = "black", fill = NA, size = 0.5),
+      panel.grid.major = element_line(colour = "lightgrey", size = 0.2, lineend = "round"),
+      legend.direction = "horizontal",
+      legend.key.size =  unit(2.1, "lines"),
+      legend.title = element_blank(), 
+      legend.justification = c(0, 0),
+      legend.position = "top" #c(0.03, 0.05)
+      )
+  ret
+}
+axis.lim <- c(-3, 3)
+
+for(lang in colnames(txt)) {
+  # add header and footer to the graphic
+  gridFormat <- function(gg, text = txt['title', lang], footer = txt['footer', lang]) {
+    grid.arrange(gg, 
+      main =  textGrob(text, x = 0.01, hjust = 0, 
+      vjust = 1.5, gp = gpar(fontsize = 33, fontfamily = fontL, col = "black")),
+      sub = textGrob(footer, x = 0.95, vjust = -0.1, hjust = 1, 
+      gp = gpar(fontsize = 14, fontfamily = font, col = "#CCCCCC"))
+    )
+  }
+  plotByYear <- function(data, year = 2011, colors = party.sub) {
+    
+    data$party <- factor(data$party)
+    levels(data$party) <- paste0("  ", txt[paste0("party.", levels(data$party)),lang])
+    names(colors) <-  paste0("  ", txt[paste0("party.", names(colors)),lang])
+    
+    gp <- ggplot(data = filter(data, election  == year), 
+      aes(x = x_coord,y = y_coord, group = party, colour = party)) +
+      stat_ellipse(aes(fill = party), geom = "polygon", level = 0.9,
+      colour = alpha("white", 0), alpha = 0.6, type = "t") +
+      geom_jitter(size = 3.5, alpha = 0.9) +
+      scale_colour_manual(values = colors) +
+      scale_fill_manual(values = colors) +    
+      coord_fixed(ratio = 1) +
+      facet_wrap(~ house, nrow = 2) +
+      xlim (c(-1.8, 2.95)) + ylim (c(-2.5,1.5)) + 
+      ggtitle(year) + xlab(txt['lab.leftright', lang]) +
+      ylab(txt['lab.conslib', lang]) 
+    gridFormat(gp + guides(col = guide_legend (nrow = 3, byrow = T)) + swiTheme())
+  }
+  
+  saveGIF({
+    sapply(c(2011, 2015), function(y) plotByYear(filter(mp, party %in% names(party.sub), !is.na(mp$Vorname)), y))
+  }, movie.name = paste0("NCCS_smarmap2011vs2015_", lang, ".gif"), interval = 3.5, loop = TRUE,  ani.width = 1000, ani.height = 1400)  
+}
+```
+
+
+## Density left/right
+```{r, echo = F}
+
+### Fill missing x_coord by party's average
+# compute the average x_coord by party and year
+data <- mp %>% select(election, house, x_coord)
+table(data$house, data$election)
+
+# Function to create transition data
+mix.data <- function(
+  start = filter(data, election == 2011, house == "NR"), 
+  end =  filter(data, election == 2015, house == "NR"), 
+  steps = 10) {
+  lapply(1:steps, function(i) {
+    rbind(start[rep(seq.int(1, nrow(start)), steps-(i-1)),], end[rep(seq.int(1, nrow(end)), i-1),])
+  })
+}
+data.transition_nr <- mix.data()
+data.transition_sr <- mix.data(
+  start = filter(data, election == 2011, house == "SR"),
+  end = filter(data, election == 2015, house == "SR"),
+  steps = 10
+)
+stopifnot(length(data.transition_nr) == length(data.transition_sr))
+data.transition <- list()
+for(l in 1:length(data.transition_nr)) {
+  data.transition[[l]] <- rbind(data.transition_nr[[l]], data.transition_sr[[l]])
+}
+
+for(lang in colnames(txt)) {
+  
+  # plot the kernel density
+  plot.density <- function(data, ...) {
+    ggplot(data, aes(x_coord)) +
+      geom_density(fill = "#ab3d3f", color = "#ab3d3f", alpha = .65, size = 1.3, ...) +
+      geom_histogram(aes(y = ..density..), fill = "#BC6465", binwidth = 0.4,
+          size = 0, alpha = .15, ...) +
+      facet_wrap(~ house, nrow = 2) + 
+      xlim(axis.lim) + xlab("left / right") + 
+      swiTheme() + theme(
+        legend.direction = "vertical",
+        legend.key.size =  unit(2, "lines"),
+        legend.title = element_blank(), 
+        legend.justification = c(0, 1),
+        legend.position = c(0.1, 0.85),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+        xlab(txt['lab.leftright', lang]) +
+        ylab(txt['lab.freq', lang]) + 
+      geom_vline(data = data %>% group_by(house) %>% 
+        summarise(mean = mean(x_coord)), aes(xintercept = mean), 
+        color = "#7A2F30", linetype = "longdash", size = 1.6)
+  }
+  
+  gridFormat <- function(gg, text = txt['title2', lang], footer = txt['footer', lang]) {
+    grid.arrange(gg, 
+      main =  textGrob(text, x = 0.01, hjust = 0, vjust = 1.5,
+      gp = gpar(fontsize = 32, fontfamily = fontL, col = "black")),
+      sub = textGrob(footer, x = 0.98, vjust = -0.1, hjust = 1, 
+      gp = gpar(fontsize = 12, fontfamily = font, col = "#CCCCCC"))
+    )
+  }
+
+  saveGIF({
+    p1 <- plot.density(filter(data, election == 2011), adjust = 0.7) + 
+      ggtitle("2011")
+    sapply(1:11, function(i) gridFormat(p1))
+    
+    sapply(data.transition, function(dd) {
+      gridFormat(plot.density(dd, adjust=1.2) + ggtitle(""))
+    })
+    
+    p2 <- plot.density(filter(data, election == 2015), adjust = 0.7) +  ggtitle("2015")
+    sapply(1:12, function(i) gridFormat(p2))
+    
+    sapply(rev(data.transition), function(dd) {
+      gridFormat(plot.density(dd, adjust=1.2) + ggtitle(""))
+    })
+    
+  }, movie.name = paste0("CNCE_leftRight_density_", lang, ".gif"), 
+  interval = 0.35, loop = TRUE,  ani.width = 900, ani.height = 1200) 
+}
+```
